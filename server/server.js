@@ -40,7 +40,7 @@ import serverConfig from './config';
 mongoose.Promise = global.Promise;
 
 // MongoDB Connection
-mongoose.connect(serverConfig.mongoURL, (error) => {
+global.mongoose_connect = mongoose.connect(serverConfig.mongoURL, (error) => {
   if (error) {
     console.error('Please make sure Mongodb is installed and running!'); // eslint-disable-line no-console
     throw error;
@@ -49,6 +49,7 @@ mongoose.connect(serverConfig.mongoURL, (error) => {
   // feed some dummy data in DB.
   dummyData();
 });
+global.mongoose = mongoose;
 
 // Apply body Parser and server public assets and routes
 app.use(compression());
@@ -140,10 +141,14 @@ app.use((req, res, next) => {
 });
 
 // start app
-app.listen(serverConfig.port, (error) => {
+const server = app.listen(serverConfig.port, (error) => {
   if (!error) {
     console.log(`MERN is running on port: ${serverConfig.port}! Build something amazing!`); // eslint-disable-line
   }
 });
+
+// socket.io server start
+import listener from './socket.io.listen';
+listener(server);
 
 export default app;
