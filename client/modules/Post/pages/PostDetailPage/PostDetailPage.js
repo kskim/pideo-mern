@@ -13,40 +13,6 @@ import { fetchPost } from '../../PostActions';
 // Import Selectors
 import { getPost } from '../../PostReducer';
 
-
-// export function PostDetailPage(props) {
-//   function onClickPlay() {
-//     this.refs.VideoComp.play();
-//   };
-//   return (
-//     <div>
-//       <Helmet title={props.post.title} />
-//       <div className={`${styles['single-post']} ${styles['post-detail']}`}>
-//         <h3 className={styles['post-title']}>{props.post.title}</h3>
-//         <p>{props.post.fileName}</p>
-//         <Link to={`/file/download/${props.post.fileId}`} >
-//           Download
-//         </Link>
-//
-//         <ReactVideo
-//           ref={'VideoComp'}
-//           cls={'custom-video'}
-//           height={500} width={'100%'}
-//           style={VideoStyle}
-//           muted={this.state.muted}
-//           src={`/file/stream/${props.post.fileId}`}
-//           source={this.state.source}>
-//         </ReactVideo>
-//
-//         <div>
-//           <div onClick={this.onClickPlay}>Play</div>
-//         </div>
-//
-//       </div>
-//     </div>
-//   );
-// }
-
 class PostDetailPage extends Component {
   state = {
     muted: false,
@@ -57,11 +23,6 @@ class PostDetailPage extends Component {
       }
     ]
   };
-
-  onClickPlay = () => {
-    this.refs.VideoComp.play();
-  };
-
 
   render() {
     const VideoStyle = {
@@ -86,11 +47,6 @@ class PostDetailPage extends Component {
             src={`/file/stream/${this.props.post.fileId}`}
             source={this.state.source}>
           </ReactVideo>
-
-          <div>
-            <div onClick={this.onClickPlay}>Play</div>
-          </div>
-
         </div>
       </div>
     );
