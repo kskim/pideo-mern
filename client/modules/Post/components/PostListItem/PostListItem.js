@@ -4,8 +4,15 @@ import { FormattedMessage } from 'react-intl';
 
 // Import Style
 import styles from './PostListItem.css';
+import StarRatingComponent from 'react-star-rating-component'; //https://www.npmjs.com/package/react-star-rating-component
 
 function PostListItem(props) {
+  const { tags, rating } = props.post;
+  let tagsArray = [];
+  if (Array.isArray(tags)) {
+    tagsArray = tags[0];
+  }
+  console.log(tags, tagsArray);
   return (
     <div className={styles['single-post']}>
       <h3 className={styles['post-title']}>
@@ -13,8 +20,19 @@ function PostListItem(props) {
           {props.post.title}
         </Link>
       </h3>
-      <p className={styles['author-name']}><FormattedMessage id="by" /> {props.post.name}</p>
-      <p className={styles['post-desc']}>{props.post.content}</p>
+      <p className={styles['post-desc']}>{props.post.fileName}</p>
+      <StarRatingComponent
+        name="rate1"
+        starCount={5}
+        value={rating}
+      />
+      <div>
+        {
+          tagsArray.map(tag => (
+            <span className={styles['tag']}> {tag} </span>
+          ))
+        }
+      </div>
       <p className={styles['post-action']}><a href="#" onClick={props.onDelete}><FormattedMessage id="deletePost" /></a></p>
       <hr className={styles.divider} />
     </div>
@@ -23,9 +41,10 @@ function PostListItem(props) {
 
 PostListItem.propTypes = {
   post: PropTypes.shape({
-    name: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
-    content: PropTypes.string.isRequired,
+    fileName: PropTypes.string.isRequired,
+    rating: PropTypes.string.isRequired,
+    tags: PropTypes.string.isRequired,
     slug: PropTypes.string.isRequired,
     cuid: PropTypes.string.isRequired,
   }).isRequired,

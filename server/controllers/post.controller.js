@@ -2,6 +2,7 @@ import Post from '../models/post';
 import cuid from 'cuid';
 import slug from 'limax';
 import sanitizeHtml from 'sanitize-html';
+import { getGfs } from '../socket.io.listen';
 
 /**
  * Get all posts
@@ -57,6 +58,7 @@ export function getPost(req, res) {
     if (err) {
       res.status(500).send(err);
     }
+
     res.json({ post });
   });
 }
@@ -72,6 +74,11 @@ export function deletePost(req, res) {
     if (err) {
       res.status(500).send(err);
     }
+
+    const gfs = getGfs();
+    gfs.findOne({ _id: post.fileId }, (err, file) => {
+      file.remove();
+    });
 
     post.remove(() => {
       res.status(200).end();
