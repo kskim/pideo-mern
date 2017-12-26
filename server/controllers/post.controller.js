@@ -77,6 +77,7 @@ export function deletePost(req, res) {
 
     const gfs = getGfs();
     gfs.findOne({ _id: post.fileId }, (err, file) => {
+      console.log(file);
       file.remove();
     });
 

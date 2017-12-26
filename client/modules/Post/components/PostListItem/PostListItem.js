@@ -28,9 +28,9 @@ function PostListItem(props) {
       />
       <div>
         {
-          tagsArray.map(tag => (
+          tagsArray ? tagsArray.map(tag => (
             <span className={styles['tag']}> {tag} </span>
-          ))
+          )) : ''
         }
       </div>
       <p className={styles['post-action']}><a href="#" onClick={props.onDelete}><FormattedMessage id="deletePost" /></a></p>

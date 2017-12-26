@@ -121,6 +121,7 @@ export default (server) => {
 
           Attachment.write({
             filename: fileName,
+            contentType: 'video/webm',
             metadata: {
               tag: '123',
             },

@@ -18,8 +18,8 @@ class PostDetailPage extends Component {
     muted: false,
     source: [
       {
-        src: 'http://www.html5rocks.com/en/tutorials/video/basics/devstories.mp4',
-        type: 'video/mp4'
+        src: '/file/stream/' + this.props.post.fileId,
+        type: 'video/webm'
       }
     ]
   };
@@ -37,14 +37,13 @@ class PostDetailPage extends Component {
           <Link to={`/file/download/${this.props.post.fileId}`} >
             Download
           </Link>
-
           <ReactVideo
             ref={'VideoComp'}
             cls={'custom-video'}
             height={500} width={'100%'}
             style={VideoStyle}
             muted={this.state.muted}
-            src={`/file/stream/${this.props.post.fileId}`}
+            // src={`/file/download/${this.props.post.fileId}`}
             source={this.state.source}>
           </ReactVideo>
         </div>
