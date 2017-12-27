@@ -20,6 +20,10 @@ export const getGfs = () => {
   });
 };
 
+export const getAttachment = () => {
+  return getGfs().model;
+};
+
 const initTempFile = (post, callback) => {
   const { fileName, size } = post;
   // 임시 파일을 준비한다

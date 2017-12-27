@@ -34,27 +34,27 @@ export function addPosts(posts) {
 
 export function fetchPosts() {
   return (dispatch) => {
-    return callApi('posts').then(res => {
-      dispatch(addPosts(res.posts));
+    return callApi('files').then(res => {
+      dispatch(addPosts(res.files));
     });
   };
 }
 
-export function fetchPost(cuid) {
+export function fetchPost(_id) {
   return (dispatch) => {
-    return callApi(`posts/${cuid}`).then(res => dispatch(addPost(res.post)));
+    return callApi(`files/${_id}`).then(res => dispatch(addPost(res.file)));
   };
 }
 
-export function deletePost(cuid) {
+export function deletePost(_id) {
   return {
     type: DELETE_POST,
-    cuid,
+    _id,
   };
 }
 
-export function deletePostRequest(cuid) {
+export function deletePostRequest(_id) {
   return (dispatch) => {
-    return callApi(`posts/${cuid}`, 'delete').then(() => dispatch(deletePost(cuid)));
+    return callApi(`files/${_id}`, 'delete').then(() => dispatch(deletePost(_id)));
   };
 }

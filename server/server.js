@@ -54,7 +54,7 @@ app.use(bodyParser.json({ limit: '20mb' }));
 app.use(bodyParser.urlencoded({ limit: '20mb', extended: false }));
 app.use(Express.static(path.resolve(__dirname, '../dist/client')));
 app.use('/api', posts);
-app.use('/file', fileRoute);
+app.use('/api', fileRoute);
 
 // Render Initial HTML
 const renderFullPage = (html, initialState) => {
@@ -146,7 +146,7 @@ const server = app.listen(serverConfig.port, (error) => {
 });
 
 // socket.io server start
-import listener from './socket.io.listen';
-listener(server);
+import fileServer from './file.server';
+fileServer(server);
 
 export default app;

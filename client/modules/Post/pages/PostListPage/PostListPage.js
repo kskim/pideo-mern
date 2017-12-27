@@ -52,9 +52,14 @@ function mapStateToProps(state) {
 
 PostListPage.propTypes = {
   posts: PropTypes.arrayOf(PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
-    content: PropTypes.string.isRequired,
+    _id: PropTypes.string.isRequired,
+    filename: PropTypes.string.isRequired,
+    metadata: PropTypes.shape({
+      title: PropTypes.string.isRequired,
+      rating: PropTypes.number,
+      tags: PropTypes.array,
+      size: PropTypes.number
+    }).isRequired
   })).isRequired,
   showAddPost: PropTypes.bool.isRequired,
   dispatch: PropTypes.func.isRequired,

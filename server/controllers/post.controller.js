@@ -2,7 +2,7 @@ import Post from '../models/post';
 import cuid from 'cuid';
 import slug from 'limax';
 import sanitizeHtml from 'sanitize-html';
-import { getGfs } from '../socket.io.listen';
+import { getAttachment } from '../socket.io.listen';
 
 /**
  * Get all posts
@@ -75,14 +75,20 @@ export function deletePost(req, res) {
       res.status(500).send(err);
     }
 
-    const gfs = getGfs();
-    gfs.findOne({ _id: post.fileId }, (err, file) => {
-      console.log(file);
-      file.remove();
+    const Attachment = getAttachment();
+
+    Attachment.unlinkById(post.fileId, (err, unlinkedAttachment) => {
+      if (err) {
+        console.error(err);
+        return;
+      }
+
+      //파일이 삭제 성공하면 post 도 삭제한다.
+      post.remove(() => {
+        res.status(200).end();
+      });
     });
 
-    post.remove(() => {
-      res.status(200).end();
-    });
+
   });
 }

@@ -1,8 +1,7 @@
 import React, { PropTypes, Component } from 'react';
 import { connect } from 'react-redux';
 import Helmet from 'react-helmet';
-import { Link } from 'react-router';
-import ReactVideo from 'react.video';
+import StarRatingComponent from 'react-star-rating-component'; //https://www.npmjs.com/package/react-star-rating-component
 
 // Import Style
 import styles from '../../components/PostListItem/PostListItem.css';
@@ -18,7 +17,7 @@ class PostDetailPage extends Component {
     muted: false,
     source: [
       {
-        src: '/file/stream/' + this.props.post.fileId,
+        src: '/api/stream/' + this.props.post._id,
         type: 'video/webm'
       }
     ]
@@ -28,24 +27,32 @@ class PostDetailPage extends Component {
     const VideoStyle = {
       backgroundColor: 'green'
     };
+    let tagsArray = [];
+    const { tags, rating } = this.props.post.metadata;
+    if (tags && Array.isArray(tags)) {
+      tagsArray = tags;
+    }
     return (
       <div>
-        <Helmet title={this.props.post.title} />
+        <Helmet title={this.props.post.metadata.title} />
         <div className={`${styles['single-post']} ${styles['post-detail']}`}>
-          <h3 className={styles['post-title']}>{this.props.post.title}</h3>
-          <p>{this.props.post.fileName}</p>
-          <Link to={`/file/download/${this.props.post.fileId}`} >
-            Download
-          </Link>
-          <ReactVideo
-            ref={'VideoComp'}
-            cls={'custom-video'}
-            height={500} width={'100%'}
-            style={VideoStyle}
-            muted={this.state.muted}
-            // src={`/file/download/${this.props.post.fileId}`}
-            source={this.state.source}>
-          </ReactVideo>
+          <h3 className={styles['post-title']}>{this.props.post.metadata.title}</h3>
+          <StarRatingComponent
+            name="rate1"
+            starCount={5}
+            value={rating}
+          />
+          <div>
+            {
+              tagsArray ? tagsArray.map(tag => (
+                <span key={tag} className={styles['tag']}> {tag} </span>
+              )) : ''
+            }
+          </div>
+          <p>{this.props.post.filename}</p>
+          <video className={styles['video']} controls>
+            <source src={'/api/stream/' + this.props.post._id} type='video/webm' />
+          </video>
         </div>
       </div>
     );
@@ -54,7 +61,7 @@ class PostDetailPage extends Component {
 
 // Actions required to provide data for this component to render in sever side.
 PostDetailPage.need = [params => {
-  return fetchPost(params.cuid);
+  return fetchPost(params._id);
 }];
 
 // Retrieve data from store as props
@@ -66,11 +73,14 @@ function mapStateToProps(state, props) {
 
 PostDetailPage.propTypes = {
   post: PropTypes.shape({
-    title: PropTypes.string.isRequired,
-    fileName: PropTypes.string.isRequired,
-    fileId: PropTypes.string.isRequired,
-    slug: PropTypes.string.isRequired,
-    cuid: PropTypes.string.isRequired,
+    _id: PropTypes.string.isRequired,
+    filename: PropTypes.string.isRequired,
+    metadata: PropTypes.shape({
+      title: PropTypes.string.isRequired,
+      rating: PropTypes.number,
+      tags: PropTypes.array,
+      size: PropTypes.number
+    }).isRequired
   }).isRequired,
 };
 

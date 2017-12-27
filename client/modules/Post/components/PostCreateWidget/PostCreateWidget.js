@@ -3,66 +3,24 @@ import { injectIntl, intlShape, FormattedMessage } from 'react-intl';
 
 // Import Style
 import styles from './PostCreateWidget.css';
-import openSocket from 'socket.io-client';
-import helper from '../../../../util/helper';
+import io from 'socket.io-client';
+import ss from 'socket.io-stream';
 import { Line } from 'rc-progress';
 import { WithContext as ReactTags } from 'react-tag-input';
-import StarRatingComponent from 'react-star-rating-component'; //https://www.npmjs.com/package/react-star-rating-component
+import StarRatingComponent from 'react-star-rating-component'; // https://www.npmjs.com/package/react-star-rating-component
 
 export class PostCreateWidget extends Component {
   constructor(props) {
     super(props);
-    this.socket = openSocket('http://localhost:8000');
-    this.socket.on('protocol', (data) => {
-      if (data.pieceSize) {
-        this.pieceSize = data.pieceSize;
-      }
-    });
   }
 
   state = {
     showProgress: false,
+    transferSize: 0,
     progress: 10,
     tags: [],
     suggestions: [],
-    rating: 0,
-  };
-
-  pieceSize = null;
-
-  addPost = () => {
-    const file = this.refs.file.files[0];
-    if (!file) return;
-
-    const fileName = file.name;
-    const size = file.size;
-    const socket = this.socket;
-    const title = this.refs.title.value;
-    const rating = this.state.rating;
-    const tags = this.state.tags.map(value => value['text']);
-    console.log(fileName, size, title, tags, rating);
-
-    socket.emit('file-transfer-ready', { fileName, size, title, tags, rating });
-
-    this.socket.on('file-transfer-continue', (data) => {
-      const fileReader = helper.sliceFile(file, data.pieceIndex, this.pieceSize);
-      const percent = ((data.pieceIndex * this.pieceSize) / file.size) * 100;
-      this.setState({ showProgress: true, progress: Math.round(percent) });
-      fileReader.onload = (event) => {
-        let fileData;
-        if (!event) {
-          fileData = fileReader.content;
-        } else {
-          fileData = event.target.result;
-        }
-        socket.emit('file-transfer-data', { fileName, fileData, title });
-      };
-    });
-    this.socket.on('file-transfer-complate', () => {
-      this.setState({ showProgress: false, progress: 100 });
-      alert('complate');
-      this.clear();
-    });
+    rating: 1,
   };
 
   clear = () => {
@@ -100,6 +58,37 @@ export class PostCreateWidget extends Component {
 
   onStarClick = (nextValue, prevValue, name) => {
     this.setState({ rating: nextValue });
+  };
+
+  addPost = () => {
+    const file = this.refs.file.files[0];
+    if (!file) return;
+
+    const filename = file.name;
+    const size = file.size;
+    const title = this.refs.title.value;
+    const rating = this.state.rating;
+    const tags = this.state.tags.map(value => value['text']);
+    const contentType = 'video/webm';
+
+    const socket = io.connect('http://localhost:8000');
+    const stream = ss.createStream();
+
+    ss(socket).emit('file-transfer', stream, { filename, size, title, tags, rating, contentType });
+    const blobStream = ss.createBlobReadStream(file);
+    this.setState({ showProgress: true, transferSize: 0, progress: 0 });
+    blobStream.on('data', (chunk) => {
+      const transferSize = this.state.transferSize + chunk.length;
+      const progress = Math.floor(transferSize / file.size * 100);
+      console.log(progress, progress >= 100);
+      if (progress >= 100) {
+        this.setState({ showProgress: false, transferSize, progress });
+        this.clear();
+      } else {
+        this.setState({ transferSize, progress });
+      }
+    });
+    blobStream.pipe(stream);
   };
 
   render() {

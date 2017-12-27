@@ -7,29 +7,28 @@ import styles from './PostListItem.css';
 import StarRatingComponent from 'react-star-rating-component'; //https://www.npmjs.com/package/react-star-rating-component
 
 function PostListItem(props) {
-  const { tags, rating } = props.post;
   let tagsArray = [];
-  if (Array.isArray(tags)) {
-    tagsArray = tags[0];
+  const { tags, rating } = props.post.metadata;
+  if (tags && Array.isArray(tags)) {
+    tagsArray = tags;
   }
-  console.log(tags, tagsArray);
   return (
     <div className={styles['single-post']}>
       <h3 className={styles['post-title']}>
-        <Link to={`/posts/${props.post.slug}-${props.post.cuid}`} >
-          {props.post.title}
+        <Link to={`/files/${props.post._id}`} >
+          {props.post.metadata.title ? props.post.metadata.title : 'untitled'}
         </Link>
       </h3>
-      <p className={styles['post-desc']}>{props.post.fileName}</p>
+      <p className={styles['post-desc']}>{props.post.filename}</p>
       <StarRatingComponent
         name="rate1"
         starCount={5}
-        value={rating}
+        value={rating ? rating : 1}
       />
       <div>
         {
           tagsArray ? tagsArray.map(tag => (
-            <span className={styles['tag']}> {tag} </span>
+            <span key={tag} className={styles['tag']}> {tag} </span>
           )) : ''
         }
       </div>
@@ -41,12 +40,14 @@ function PostListItem(props) {
 
 PostListItem.propTypes = {
   post: PropTypes.shape({
-    title: PropTypes.string.isRequired,
-    fileName: PropTypes.string.isRequired,
-    rating: PropTypes.string.isRequired,
-    tags: PropTypes.string.isRequired,
-    slug: PropTypes.string.isRequired,
-    cuid: PropTypes.string.isRequired,
+    _id: PropTypes.string.isRequired,
+    filename: PropTypes.string.isRequired,
+    metadata: PropTypes.shape({
+      title: PropTypes.string.isRequired,
+      rating: PropTypes.number,
+      tags: PropTypes.array,
+      size: PropTypes.number
+    }).isRequired
   }).isRequired,
   onDelete: PropTypes.func.isRequired,
 };
