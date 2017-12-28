@@ -26,14 +26,28 @@ class PostListPage extends Component {
     }
   };
 
-  handleAddPost = (name, title, content) => {
+  handleAddPost = () => {
     this.props.dispatch(toggleAddPost());
-    this.props.dispatch(addPostRequest({ name, title, content }));
+    this.handleSearchClick();
   };
 
   handleSearchClick = () => {
     this.props.dispatch(fetchPosts(this.refs.tags.value, this.refs.rating.value));
   };
+
+  handleNextClick = () => {
+    this.props.dispatch(fetchPosts(this.refs.tags.value, this.refs.rating.value, this.state.page + 1));
+    this.setState({ page: this.state.page + 1 });
+  };
+
+  handlePreviousClick = () => {
+    this.props.dispatch(fetchPosts(this.refs.tags.value, this.refs.rating.value, this.state.page - 1));
+    this.setState({ page: this.state.page - 1 });
+  };
+
+  state = {
+    page: 1
+  }
 
   render() {
     return (
@@ -45,6 +59,10 @@ class PostListPage extends Component {
         </div>
         <PostCreateWidget addPost={this.handleAddPost} showAddPost={this.props.showAddPost} />
         <PostList handleDeletePost={this.handleDeletePost} posts={this.props.posts} />
+        {this.state.page > 1 ?
+          <a className={styles['button']} href="#" onClick={this.handlePreviousClick}>previous</a> : ""
+        }
+        <a className={styles['button']} href="#" onClick={this.handleNextClick}>next</a>
       </div>
     );
   }
@@ -65,6 +83,7 @@ PostListPage.propTypes = {
   posts: PropTypes.arrayOf(PropTypes.shape({
     _id: PropTypes.string.isRequired,
     filename: PropTypes.string.isRequired,
+    contentType: PropTypes.string.isRequired,
     metadata: PropTypes.shape({
       title: PropTypes.string.isRequired,
       rating: PropTypes.number,

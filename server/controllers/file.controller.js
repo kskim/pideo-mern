@@ -51,8 +51,9 @@ export function getFiles(req, res) {
     query['metadata.rating'] = { $gte: parseInt(req.query.rating, 10) };
   }
   console.debug(query);
+  const page = req.query.page;
   const Attachment = getAttachment();
-  Attachment.find(query).sort('-uploadDate').exec((err, files) => {
+  Attachment.find(query).sort('-uploadDate').skip((page - 1) * 10).limit(10).exec((err, files) => {
     if (err) {
       res.status(500).send(err);
     }

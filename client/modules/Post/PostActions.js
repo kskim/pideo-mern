@@ -26,16 +26,15 @@ export function addPostRequest(post) {
 }
 
 export function addPosts(posts) {
-  console.log('addPosts', posts);
   return {
     type: ADD_POSTS,
     posts,
   };
 }
 
-export function fetchPosts(tags = null, rating = null) {
+export function fetchPosts(tags = null, rating = null, page = 1) {
   return (dispatch) => {
-    let query = 'files?';
+    let query = 'files?page='+page+'&';
     if (tags) {
       query += 'tags=' + tags + '&';
     }
@@ -57,7 +56,6 @@ export function fetchPost(_id) {
 }
 
 export function modifyPost(_id, tags = null, rating = null) {
-  console.log(tags);
   return (dispatch) => {
     return callApi(`files/${_id}`, 'post', { tags, rating }).then(res => dispatch(addPosts([res.file])));
   };

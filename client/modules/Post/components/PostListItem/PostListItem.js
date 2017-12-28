@@ -42,6 +42,7 @@ PostListItem.propTypes = {
   post: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     filename: PropTypes.string.isRequired,
+    contentType: PropTypes.string.isRequired,
     metadata: PropTypes.shape({
       title: PropTypes.string.isRequired,
       rating: PropTypes.number,

@@ -37,6 +37,7 @@ export default (server) => {
             console.error(err);
           }
           console.log(collection);
+          socket.emit('file-transfer-success');
         });
     });
   });

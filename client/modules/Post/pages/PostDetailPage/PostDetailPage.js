@@ -95,7 +95,7 @@ class PostDetailPage extends Component {
           />
           <p>{this.props.post.filename}</p>
           <video className={styles['video']} controls>
-            <source src={'/api/stream/' + this.props.post._id} type='video/webm' />
+            <source src={'/api/stream/' + this.props.post._id} type={this.props.post.contentType} />
           </video>
         </div>
       </div>
@@ -119,6 +119,7 @@ PostDetailPage.propTypes = {
   post: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     filename: PropTypes.string.isRequired,
+    contentType: PropTypes.string.isRequired,
     metadata: PropTypes.shape({
       title: PropTypes.string.isRequired,
       rating: PropTypes.number,

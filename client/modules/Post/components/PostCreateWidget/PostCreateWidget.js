@@ -26,7 +26,7 @@ export class PostCreateWidget extends Component {
   clear = () => {
     this.refs.title.value = '';
     this.refs.file.value = '';
-    this.setState({ tags: [], rating: 0 });
+    this.setState({ tags: [], rating: 1 });
   };
 
   handleDelete = (i) => {
@@ -42,7 +42,6 @@ export class PostCreateWidget extends Component {
       text: tag,
     });
     this.setState({ tags });
-    console.log(tags.map(value => value['text']));
   };
 
   handleDrag = (tag, currPos, newPos) => {
@@ -65,14 +64,28 @@ export class PostCreateWidget extends Component {
     if (!file) return;
 
     const filename = file.name;
+    const fileExtension = filename.split('.').pop();
+
+    if (fileExtension !== 'webm' && fileExtension !== 'mp4') {
+      alert('only webm or mp4');
+      return;
+    }
+
     const size = file.size;
     const title = this.refs.title.value;
     const rating = this.state.rating;
     const tags = this.state.tags.map(value => value['text']);
-    const contentType = 'video/webm';
+    const contentType = 'video/' + fileExtension;
+    console.log(filename)
 
     const socket = io.connect('http://localhost:8000');
     const stream = ss.createStream();
+
+    socket.on('file-transfer-success', () => {
+      this.setState({ showProgress: false });
+      this.clear();
+      this.props.addPost();
+    });
 
     ss(socket).emit('file-transfer', stream, { filename, size, title, tags, rating, contentType });
     const blobStream = ss.createBlobReadStream(file);
@@ -80,13 +93,7 @@ export class PostCreateWidget extends Component {
     blobStream.on('data', (chunk) => {
       const transferSize = this.state.transferSize + chunk.length;
       const progress = Math.floor(transferSize / file.size * 100);
-      console.log(progress, progress >= 100);
-      if (progress >= 100) {
-        this.setState({ showProgress: false, transferSize, progress });
-        this.clear();
-      } else {
-        this.setState({ transferSize, progress });
-      }
+      this.setState({ transferSize, progress });
     });
     blobStream.pipe(stream);
   };
