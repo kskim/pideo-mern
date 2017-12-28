@@ -1,4 +1,4 @@
-import { ADD_POST, ADD_POSTS, DELETE_POST } from './PostActions';
+import { ADD_POST, ADD_POSTS, DELETE_POST, MODIFY_POST } from './PostActions';
 
 // Initial State
 const initialState = { data: [] };
@@ -31,7 +31,7 @@ const PostReducer = (state = initialState, action) => {
 export const getPosts = state => state.posts.data;
 
 // Get post by cuid
-export const getPost = (state, cuid) => state.posts.data.filter(post => post.cuid === cuid)[0];
+export const getPost = (state, _id) => state.posts.data.filter(post => post._id === _id)[0];
 
 // Export Reducer
 export default PostReducer;

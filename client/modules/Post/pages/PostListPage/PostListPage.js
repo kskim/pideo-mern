@@ -13,6 +13,8 @@ import { toggleAddPost } from '../../../App/AppActions';
 import { getShowAddPost } from '../../../App/AppReducer';
 import { getPosts } from '../../PostReducer';
 
+import styles from './PostListPage.css';
+
 class PostListPage extends Component {
   componentDidMount() {
     this.props.dispatch(fetchPosts());
@@ -29,9 +31,18 @@ class PostListPage extends Component {
     this.props.dispatch(addPostRequest({ name, title, content }));
   };
 
+  handleSearchClick = () => {
+    this.props.dispatch(fetchPosts(this.refs.tags.value, this.refs.rating.value));
+  };
+
   render() {
     return (
       <div>
+        <div className={styles['form']}>
+          <input className={styles['form-field']} type="text" placeholder="tags" ref="tags" />
+          <input className={styles['form-field']} type="text" placeholder="rating" ref="rating" />
+          <a className={styles['button']} href="#" onClick={this.handleSearchClick}>Search</a>
+        </div>
         <PostCreateWidget addPost={this.handleAddPost} showAddPost={this.props.showAddPost} />
         <PostList handleDeletePost={this.handleDeletePost} posts={this.props.posts} />
       </div>

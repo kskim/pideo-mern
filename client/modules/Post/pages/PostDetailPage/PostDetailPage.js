@@ -2,9 +2,12 @@ import React, { PropTypes, Component } from 'react';
 import { connect } from 'react-redux';
 import Helmet from 'react-helmet';
 import StarRatingComponent from 'react-star-rating-component'; //https://www.npmjs.com/package/react-star-rating-component
+import { WithContext as ReactTags } from 'react-tag-input';
+import { modifyPost } from '../../PostActions';
 
 // Import Style
 import styles from '../../components/PostListItem/PostListItem.css';
+import styles2 from '../../components/PostCreateWidget/PostCreateWidget.css';
 
 // Import Actions
 import { fetchPost } from '../../PostActions';
@@ -13,7 +16,44 @@ import { fetchPost } from '../../PostActions';
 import { getPost } from '../../PostReducer';
 
 class PostDetailPage extends Component {
+
+  handleAddition = (tag) => {
+    let tags = this.state.tags;
+    tags.push({
+      id: tags.length + 1,
+      text: tag,
+    });
+    this.setState({ tags });
+    // synch
+    this.props.dispatch(modifyPost(this.props.post._id, tags.map(value => value['text']), null));
+  };
+
+  handleDrag = (tag, currPos, newPos) => {
+    let tags = this.state.tags;
+
+    // mutate array
+    tags.splice(currPos, 1);
+    tags.splice(newPos, 0, tag);
+
+    // re-render
+    this.setState({ tags });
+  };
+
+  handleDelete = (i) => {
+    let tags = this.state.tags;
+    tags.splice(i, 1);
+    this.setState({ tags });
+    // synch
+    this.props.dispatch(modifyPost(this.props.post._id, tags.map(value => value['text']), null));
+  };
+
+  handleOnStarClick = (nextValue, prevValue, name) => {
+    // synch
+    this.props.dispatch(modifyPost(this.props.post._id, null, parseInt(nextValue, 10)));
+  };
+
   state = {
+    tags: this.props.post.metadata.tags ? this.props.post.metadata.tags.map((v,i) => { return { id:i, text:v }; }) : [],
     muted: false,
     source: [
       {
@@ -24,14 +64,7 @@ class PostDetailPage extends Component {
   };
 
   render() {
-    const VideoStyle = {
-      backgroundColor: 'green'
-    };
-    let tagsArray = [];
-    const { tags, rating } = this.props.post.metadata;
-    if (tags && Array.isArray(tags)) {
-      tagsArray = tags;
-    }
+    const { rating } = this.props.post.metadata;
     return (
       <div>
         <Helmet title={this.props.post.metadata.title} />
@@ -41,14 +74,25 @@ class PostDetailPage extends Component {
             name="rate1"
             starCount={5}
             value={rating}
+            onStarClick={this.handleOnStarClick}
           />
-          <div>
-            {
-              tagsArray ? tagsArray.map(tag => (
-                <span key={tag} className={styles['tag']}> {tag} </span>
-              )) : ''
-            }
-          </div>
+          <ReactTags
+            tags={ this.state.tags }
+            suggestions={[]}
+            handleDelete={this.handleDelete}
+            handleAddition={this.handleAddition}
+            handleDrag={this.handleDrag}
+            classNames={{
+              tags: styles2['ReactTags__tags'],
+              tagInput: styles2['ReactTags__tagInput'],
+              tagInputField: styles2['ReactTags__tagInputField'],
+              selected: styles2['ReactTags__selected'],
+              tag: styles2['ReactTags__tag'],
+              remove: styles2['ReactTags__remove'],
+              suggestions: styles2['ReactTags__suggestions'],
+              activeSuggestion: styles2['ReactTags__activeSuggestion'],
+            }}
+          />
           <p>{this.props.post.filename}</p>
           <video className={styles['video']} controls>
             <source src={'/api/stream/' + this.props.post._id} type='video/webm' />
@@ -67,7 +111,7 @@ PostDetailPage.need = [params => {
 // Retrieve data from store as props
 function mapStateToProps(state, props) {
   return {
-    post: getPost(state, props.params.cuid),
+    post: getPost(state, props.params._id),
   };
 }
 
