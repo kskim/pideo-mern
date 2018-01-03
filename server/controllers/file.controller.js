@@ -70,12 +70,13 @@ export function getFile(req, res) {
 }
 
 export function addAdditional(req, res) {
-  const { linkFileId, linkType } = req.body;
+  const { linkValue, linkType, linkInfo } = req.body;
   const fileId = req.params._id;
   const additional = new Additional();
   additional.fileId = fileId;
-  additional.linkFileId = linkFileId;
+  additional.linkValue = linkValue;
   additional.linkType = linkType;
+  additional.linkInfo = linkInfo;
 
   additional.save((err, saved) => {
     if (err) {

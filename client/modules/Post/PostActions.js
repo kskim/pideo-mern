@@ -41,7 +41,7 @@ export function addPosts(posts) {
 
 export function fetchPosts(tags = null, rating = null, page = 1) {
   return (dispatch) => {
-    let query = 'files?page='+page+'&';
+    let query = 'files?page=' + page + '&';
     if (tags) {
       query += 'tags=' + tags + '&';
     }
@@ -62,10 +62,9 @@ export function fetchPost(_id) {
   };
 }
 
-export function addAdditional(fileId, linkFileId, linkType) {
+export function addAdditional(fileId, linkValue, linkType, linkInfo) {
   return (dispatch) => {
-    return callApi(`addAdditional/${fileId}`, 'post', { fileId, linkFileId, linkType }).then(res => {
-      console.log(res);
+    return callApi(`addAdditional/${fileId}`, 'post', { fileId, linkValue, linkType, linkInfo }).then(res => {
       if (res.errors) {
         alert(res.message);
         return;

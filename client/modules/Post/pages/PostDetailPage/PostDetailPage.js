@@ -54,6 +54,8 @@ class PostDetailPage extends Component {
   };
 
   state = {
+    linkValue: undefined,
+    linkInfo: undefined,
     tags: this.props.post.metadata.tags ? this.props.post.metadata.tags.map((v, i) => { return { id: i, text: v }; }) : [],
     muted: false,
     source: [
@@ -64,18 +66,35 @@ class PostDetailPage extends Component {
     ],
   };
 
-  handleOnClick = (event) => {
-    const linkFileId = this.refs.linkFileId.value;
+  handleOnClick = () => {
     const linkType = this.refs.linkType.value;
-    this.props.dispatch(addAdditional(this.props.post._id, linkFileId, linkType));
+    const linkValue = this.refs.linkValue.value;
+    const linkInfo = this.refs.linkInfo.value;
+    console.log(linkValue, linkType, linkInfo);
+    this.props.dispatch(addAdditional(this.props.post._id, linkValue, linkType, linkInfo));
   };
 
   handleAdditionalDeleteClick = (_id) => {
     this.props.dispatch(deleteAdditional(_id));
   };
 
+  handlePinClick = (time) => {
+    this.refs.video.currentTime = time;
+    this.refs.video.play();
+  };
+
   additionalRender = (add) => {
     switch (add.linkType) {
+      case 'pin':
+        return (
+          <div key={add._id}>
+            <div>
+              <span>{add.linkType} : </span>
+              <span>[<a href='javascript:void(0);' onClick={() => this.handlePinClick(add.linkValue)} >{add.linkValue}</a>]({add.linkInfo})</span>
+              <span> &nbsp; [<a href="#" onClick={() => this.handleAdditionalDeleteClick(add._id)}>X</a>]</span>
+            </div>
+          </div>
+        );
       case 'snapshot':
       case 'poster':
       case 'cover':
@@ -83,8 +102,8 @@ class PostDetailPage extends Component {
           <div key={add._id}>
             <div>
               <span>{add.linkType} : </span>
-              <span><a href={`/files/${add.linkFileId}`}><img src={`/api/stream/${add.linkFileId}`} /></a></span>
-              <span> &nbsp; [<a href="#" onClick={ () => this.handleAdditionalDeleteClick(add._id)}>delete</a>]</span>
+              <span><a href={`/files/${add.linkValue}`}><img src={`/api/stream/${add.linkValue}`} /></a></span>
+              <span> &nbsp; [<a href="#" onClick={() => this.handleAdditionalDeleteClick(add._id)}>delete</a>]</span>
             </div>
           </div>
         );
@@ -93,8 +112,8 @@ class PostDetailPage extends Component {
           <div key={add._id}>
             <div>
               <span>{add.linkType} : </span>
-              <span><a href={`/files/${add.linkFileId}`}>{add.linkFileId}</a></span>
-              <span> &nbsp; [<a href="#" onClick={ () => this.handleAdditionalDeleteClick(add._id)}>delete</a>]</span>
+              <span><a href={`/files/${add.linkValue}`}>{add.linkValue}</a></span>
+              <span> &nbsp; [<a href="#" onClick={() => this.handleAdditionalDeleteClick(add._id)}>delete</a>]</span>
             </div>
           </div>
         );
@@ -105,11 +124,17 @@ class PostDetailPage extends Component {
     if (post.additionals) {
       return post.additionals.filter(add => add.linkType === 'subtitle').map(add => {
         return (
-          <track kind="subtitles" label="subtitles" src={`/api/stream/${add.linkFileId}`} srclang="ko"></track>
+          <track kind="subtitles" label="subtitles" src={`/api/stream/${add.linkValue}`} srclang={add.linkInfo}></track>
         );
       });
     }
     return '';
+  };
+
+  handleSelectChange = (event) => {
+    if (event.target.value === 'pin') {
+      this.setState({ linkValue: this.refs.video.currentTime });
+    }
   };
 
   render() {
@@ -146,7 +171,7 @@ class PostDetailPage extends Component {
           {
             this.props.post.contentType == 'video/mp4' ||
             this.props.post.contentType == 'video/webm' ?
-            <video className={styles['video']} controls>
+            <video className={styles['video']} controls ref="video">
               <source src={'/api/stream/' + this.props.post._id} type={this.props.post.contentType} />
               {this.tracksRender(this.props.post)}
             </video>
@@ -154,13 +179,15 @@ class PostDetailPage extends Component {
           }
         </div>
         <div>
-          <select ref="linkType">
+          <select ref="linkType" onChange={this.handleSelectChange}>
             <option value="subtitle">subtitle</option>
             <option value="poster">poster</option>
             <option value="cover">cover</option>
             <option value="snapshot">snapshot</option>
+            <option value="pin">pin</option>
           </select>
-          <input type="text" placeholder="link file id" ref="linkFileId" />
+          <input type="text" placeholder="link value" value={this.state.linkValue} ref='linkValue' />
+          <input type="text" placeholder="optional value" value={this.state.linkInfo} ref='linkInfo' />
           <a href="#" onClick={this.handleOnClick}>[ADD]</a>
         </div>
       </div>
