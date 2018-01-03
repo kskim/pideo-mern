@@ -17,7 +17,7 @@ function PostListItem(props) {
       <div className={styles['divTableCell']} >
           {props.post._id}
       </div>
-      <div className={styles['divTableCell']} >
+      <div className={`${styles['divTableCell']} ${styles['link']}`} >
         <Link to={`/files/${props.post._id}`} >
           {props.post.filename ? props.post.filename : 'unknown'}
         </Link>

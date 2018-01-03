@@ -126,6 +126,7 @@ export function getFiles(req, res) {
       { $match: query },
       { $skip: (page - 1) * 20 },
       { $limit: 20 },
+      { $sort: {'uploadDate': -1} },
       {
         $lookup: {
           from: 'additional',
@@ -139,6 +140,7 @@ export function getFiles(req, res) {
     .exec((err, files) => {
       if (err) {
         res.status(500).send(err);
+        return;
       }
       res.json({ files });
     });

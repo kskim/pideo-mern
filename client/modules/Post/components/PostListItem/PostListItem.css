@@ -109,3 +109,7 @@
 .rating {
   min-width: 100px;
 }
+
+.link {
+  max-width: 100px;
+}
