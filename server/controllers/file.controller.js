@@ -1,9 +1,19 @@
-import { getAttachment, save } from '../file.server';
+import { getAttachment, save, encodingToMp4 } from '../file.server';
 import iconv from 'iconv-lite';
 import formidable from 'formidable';
 import Additional from '../models/additional';
 import mongoose from 'mongoose';
 
+export function toMp4(req, res) {
+  const _id = req.params._id;
+  const f = req.query.f;
+  if (f) {
+    encodingToMp4(_id, true);
+  } else {
+    encodingToMp4(_id);
+  }
+  res.status(200).end('processing');
+}
 
 export function fileUploads(req, res) {
   const form = new formidable.IncomingForm();

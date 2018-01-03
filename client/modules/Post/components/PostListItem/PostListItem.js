@@ -40,7 +40,7 @@ function PostListItem(props) {
         }
       </div>
       <div className={styles['divTableCell']} >
-        <p className={styles['post-action']}><a href="#" onClick={props.onDelete}><FormattedMessage id="deletePost" /></a></p>
+        <p className={styles['post-action']}><a href="javascript:void(0);" onClick={props.onDelete}><FormattedMessage id="deletePost" /></a></p>
       </div>
     </div>
   );

@@ -91,7 +91,7 @@ class PostDetailPage extends Component {
             <div>
               <span>{add.linkType} : </span>
               <span>[<a href='javascript:void(0);' onClick={() => this.handlePinClick(add.linkValue)} >{add.linkValue}</a>]({add.linkInfo})</span>
-              <span> &nbsp; [<a href="#" onClick={() => this.handleAdditionalDeleteClick(add._id)}>X</a>]</span>
+              <span> &nbsp; [<a href="javascript:void(0);" onClick={() => this.handleAdditionalDeleteClick(add._id)}>X</a>]</span>
             </div>
           </div>
         );
@@ -103,7 +103,7 @@ class PostDetailPage extends Component {
             <div>
               <span>{add.linkType} : </span>
               <span><a href={`/files/${add.linkValue}`}><img src={`/api/stream/${add.linkValue}`} /></a></span>
-              <span> &nbsp; [<a href="#" onClick={() => this.handleAdditionalDeleteClick(add._id)}>delete</a>]</span>
+              <span> &nbsp; [<a href="javascript:void(0);" onClick={() => this.handleAdditionalDeleteClick(add._id)}>delete</a>]</span>
             </div>
           </div>
         );
@@ -113,7 +113,7 @@ class PostDetailPage extends Component {
             <div>
               <span>{add.linkType} : </span>
               <span><a href={`/files/${add.linkValue}`}>{add.linkValue}</a></span>
-              <span> &nbsp; [<a href="#" onClick={() => this.handleAdditionalDeleteClick(add._id)}>delete</a>]</span>
+              <span> &nbsp; [<a href="javascript:void(0);" onClick={() => this.handleAdditionalDeleteClick(add._id)}>delete</a>]</span>
             </div>
           </div>
         );
@@ -166,7 +166,16 @@ class PostDetailPage extends Component {
               activeSuggestion: styles2['ReactTags__activeSuggestion'],
             }}
           />
-          <a href={'/api/stream/' + this.props.post._id}>{this.props.post.filename}</a>
+          <div>
+            <span>
+              <a href={`/api/toMp4/${this.props.post._id}`} target='_blank'>encoding to mp4</a>
+            </span>
+            <span>(process:{this.props.post.metadata.process ? 'processing': 'process done'})</span>
+          </div>
+          <span>
+            <a href={'/api/stream/' + this.props.post._id}>{this.props.post.filename}</a>
+            (size : {(this.props.post.length / 1048576).toFixed(2)}Mb)
+          </span>
           {this.props.post.additionals ? this.props.post.additionals.map(this.additionalRender) : ''}
           {
             this.props.post.contentType == 'video/mp4' ||
@@ -188,7 +197,7 @@ class PostDetailPage extends Component {
           </select>
           <input type="text" placeholder="link value" value={this.state.linkValue} ref='linkValue' />
           <input type="text" placeholder="optional value" value={this.state.linkInfo} ref='linkInfo' />
-          <a href="#" onClick={this.handleOnClick}>[ADD]</a>
+          <a href="javascript:void(0);" onClick={this.handleOnClick}>[ADD]</a>
         </div>
       </div>
     );
@@ -211,11 +220,12 @@ PostDetailPage.propTypes = {
   post: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     filename: PropTypes.string.isRequired,
+    length: PropTypes.number.isRequired,
     contentType: PropTypes.string.isRequired,
     metadata: PropTypes.shape({
       rating: PropTypes.number,
       tags: PropTypes.array,
-      size: PropTypes.number,
+      process: PropTypes.boolean
     }).isRequired,
     additionals: PropTypes.array.isRequired,
   }).isRequired,

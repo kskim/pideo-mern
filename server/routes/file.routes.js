@@ -10,5 +10,6 @@ router.route('/files/:_id').delete(FileController.deleteFile);
 router.route('/fileUploads').post(FileController.fileUploads);
 router.route('/addAdditional/:_id').post(FileController.addAdditional);
 router.route('/addAdditional/:_id').delete(FileController.deleteAdditional);
+router.route('/toMp4/:_id').get(FileController.toMp4);
 
 export default router;

@@ -56,14 +56,14 @@ class PostListPage extends Component {
         <div className={styles['form']}>
           <input className={styles['form-field']} type="text" placeholder="tags" ref="tags" />
           <input className={styles['form-field']} type="text" placeholder="rating" ref="rating" />
-          <a className={styles['button']} href="#" onClick={this.handleSearchClick}>Search</a>
+          <a className={styles['button']} href="javascript:void(0);" onClick={this.handleSearchClick}>Search</a>
         </div>
         <PostCreateWidget addPost={this.handleAddPost} showAddPost={this.props.showAddPost} />
         <PostList handleDeletePost={this.handleDeletePost} posts={this.props.posts} />
         {this.state.page > 1 ?
-          <a className={styles['button']} href="#" onClick={this.handlePreviousClick}>previous</a> : ""
+          <a className={styles['button']} href="javascript:void(0);" onClick={this.handlePreviousClick}>previous</a> : ""
         }
-        <a className={styles['button']} href="#" onClick={this.handleNextClick}>next</a>
+        <a className={styles['button']} href="javascript:void(0);" onClick={this.handleNextClick}>next</a>
       </div>
     );
   }
