@@ -82,7 +82,6 @@ export default (server) => {
     const gfs = getGfs();
 
     socket.on('file-transfer-ready', (data) => {
-      console.log('file-transfer-ready');
       const { title } = data;
 
       // post 에 파일 이외의 정보를 담는다. 중복 채크 { fileName, size, title, tags, rating }
@@ -107,7 +106,6 @@ export default (server) => {
     });
 
     socket.on('file-transfer-data', (data) => {
-      console.log('file-transfer-data');
       const fileName = data.fileName;
       const title = data.title;
       const fileData = data.fileData;

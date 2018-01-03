@@ -4,6 +4,7 @@ import callApi from '../../util/apiCaller';
 export const ADD_POST = 'ADD_POST';
 export const ADD_POSTS = 'ADD_POSTS';
 export const DELETE_POST = 'DELETE_POST';
+export const DELETE_ADDITIONAL = 'DELETE_ADDITIONAL';
 
 // Export Actions
 export function addPost(post) {
@@ -25,6 +26,12 @@ export function addPostRequest(post) {
   };
 }
 
+export function deleteAdditionalAction(_id) {
+  return {
+    type: DELETE_ADDITIONAL,
+    _id,
+  };
+}
 export function addPosts(posts) {
   return {
     type: ADD_POSTS,
@@ -52,6 +59,25 @@ export function fetchPosts(tags = null, rating = null, page = 1) {
 export function fetchPost(_id) {
   return (dispatch) => {
     return callApi(`files/${_id}`).then(res => dispatch(addPosts([res.file])));
+  };
+}
+
+export function addAdditional(fileId, linkFileId, linkType) {
+  return (dispatch) => {
+    return callApi(`addAdditional/${fileId}`, 'post', { fileId, linkFileId, linkType }).then(res => {
+      console.log(res);
+      if (res.errors) {
+        alert(res.message);
+        return;
+      }
+      return dispatch(addPosts([res.file]));
+    });
+  };
+}
+
+export function deleteAdditional(_id) {
+  return (dispatch) => {
+    return callApi(`addAdditional/${_id}`, 'delete', { _id }).then(res => dispatch(deleteAdditionalAction(_id)));
   };
 }
 

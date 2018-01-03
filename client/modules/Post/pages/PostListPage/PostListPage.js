@@ -27,7 +27,8 @@ class PostListPage extends Component {
   };
 
   handleAddPost = () => {
-    this.props.dispatch(toggleAddPost());
+    // this.props.dispatch(toggleAddPost());
+    // this.props.dispatch(addPostRequest({ name, title, content }));ls
     this.handleSearchClick();
   };
 
@@ -85,7 +86,6 @@ PostListPage.propTypes = {
     filename: PropTypes.string.isRequired,
     contentType: PropTypes.string.isRequired,
     metadata: PropTypes.shape({
-      title: PropTypes.string.isRequired,
       rating: PropTypes.number,
       tags: PropTypes.array,
       size: PropTypes.number

@@ -1,19 +1,15 @@
 import React, { Component, PropTypes } from 'react';
 import { injectIntl, intlShape, FormattedMessage } from 'react-intl';
+import Dropzone from 'react-dropzone';
+import request from 'superagent';
 
 // Import Style
 import styles from './PostCreateWidget.css';
-import io from 'socket.io-client';
-import ss from 'socket.io-stream';
 import { Line } from 'rc-progress';
 import { WithContext as ReactTags } from 'react-tag-input';
 import StarRatingComponent from 'react-star-rating-component'; // https://www.npmjs.com/package/react-star-rating-component
 
 export class PostCreateWidget extends Component {
-  constructor(props) {
-    super(props);
-  }
-
   state = {
     showProgress: false,
     transferSize: 0,
@@ -23,12 +19,6 @@ export class PostCreateWidget extends Component {
     rating: 1,
   };
 
-  clear = () => {
-    this.refs.title.value = '';
-    this.refs.file.value = '';
-    this.setState({ tags: [], rating: 1 });
-  };
-
   handleDelete = (i) => {
     let tags = this.state.tags;
     tags.splice(i, 1);
@@ -36,7 +26,7 @@ export class PostCreateWidget extends Component {
   };
 
   handleAddition = (tag) => {
-    let tags = this.state.tags;
+    const tags = this.state.tags;
     tags.push({
       id: tags.length + 1,
       text: tag,
@@ -59,43 +49,25 @@ export class PostCreateWidget extends Component {
     this.setState({ rating: nextValue });
   };
 
-  addPost = () => {
-    const file = this.refs.file.files[0];
-    if (!file) return;
-
-    const filename = file.name;
-    const fileExtension = filename.split('.').pop();
-
-    if (fileExtension !== 'webm' && fileExtension !== 'mp4') {
-      alert('only webm or mp4');
-      return;
-    }
-
-    const size = file.size;
-    const title = this.refs.title.value;
+  onDrop = files => {
     const rating = this.state.rating;
     const tags = this.state.tags.map(value => value['text']);
-    const contentType = 'video/' + fileExtension;
-    console.log(filename)
-
-    const socket = io.connect('http://localhost:8000');
-    const stream = ss.createStream();
-
-    socket.on('file-transfer-success', () => {
-      this.setState({ showProgress: false });
-      this.clear();
-      this.props.addPost();
+    const req = request.post('/api/fileUploads');
+    req.field('rating', rating);
+    req.field('tags', tags);
+    files.forEach((file) => {
+      req.attach(file.name, file);
     });
-
-    ss(socket).emit('file-transfer', stream, { filename, size, title, tags, rating, contentType });
-    const blobStream = ss.createBlobReadStream(file);
     this.setState({ showProgress: true, transferSize: 0, progress: 0 });
-    blobStream.on('data', (chunk) => {
-      const transferSize = this.state.transferSize + chunk.length;
-      const progress = Math.floor(transferSize / file.size * 100);
+    req.on('progress', event => {
+      const transferSize = event.loaded;
+      const progress = Math.floor(event.percent);
       this.setState({ transferSize, progress });
     });
-    blobStream.pipe(stream);
+    req.end(() => {
+      this.setState({ showProgress: false });
+      this.props.addPost();
+    });
   };
 
   render() {
@@ -104,9 +76,10 @@ export class PostCreateWidget extends Component {
     return (
       <div className={cls}>
         <div className={`${styles['form-content']} ${showProgress ? styles['hide'] : ''}`} >
-          <h2 className={styles['form-title']}><FormattedMessage id="createNewPost" /></h2>
-          <input placeholder={this.props.intl.messages.postTitle} className={styles['form-field']} ref="title" />
-          <input type="file" className={styles['form-field']} ref="file" />
+          <h2 className={styles['form-title']}>Upload new files</h2>
+          <Dropzone className={styles['dropzone']} onDrop={this.onDrop}>
+            <div> Try dropping some files here, or click to select files to upload. </div>
+          </Dropzone>
           <StarRatingComponent
             name="rate1"
             starCount={5}
@@ -130,7 +103,6 @@ export class PostCreateWidget extends Component {
               activeSuggestion: styles['ReactTags__activeSuggestion'],
             }}
           />
-          <a className={styles['post-submit-button']} href="#" onClick={this.addPost}><FormattedMessage id="submit" ref="submit" /></a>
         </div>
         <div className={`${styles['form-content']} ${showProgress ? '' : styles['hide']}`} >
           <span>Progress {progress}%</span>

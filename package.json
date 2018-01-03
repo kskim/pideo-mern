@@ -47,6 +47,7 @@
     "rc-progress": "^2.2.5",
     "react": "^15.1.0",
     "react-dom": "^15.1.0",
+    "react-dropzone": "^4.2.3",
     "react-helmet": "^3.1.0",
     "react-intl": "^2.1.2",
     "react-redux": "^4.4.5",
