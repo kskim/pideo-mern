@@ -112,3 +112,7 @@
 
 .link {
 }
+
+.date {
+  max-width: 50px;
+}

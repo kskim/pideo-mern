@@ -20,16 +20,14 @@ function PostListItem(props) {
     textField.select();
     document.execCommand('copy');
     textField.remove();
+    alert('copy id');
   };
 
   const utc = new Date(props.post.uploadDate);
   return (
     <div className={styles['divTableRow']}>
-      <div className={styles['divTableCell']} >
-        {utc.toLocaleString('ko-KR')}
-      </div>
-      <div className={styles['divTableCell']} >
-          <a href="javascript:void(0);" onClick={() => {copyToClipboard(props.post._id)}}>copy</a>
+      <div className={`${styles['divTableCell']} ${styles['date']}`} >
+          <a href="javascript:void(0);" onClick={() => {copyToClipboard(props.post._id)}}>{utc.getFullYear() + '.' + (utc.getMonth()+1) + '.' + utc.getDay()}</a>
       </div>
       <div className={`${styles['divTableCell']} ${styles['link']}`} >
         <Link to={`/files/${props.post._id}`} >

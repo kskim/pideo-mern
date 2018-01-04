@@ -138,10 +138,10 @@ export function getFiles(req, res) {
       { $limit: 20 },
       {
         $lookup: {
-          from: 'additional',
+          from: 'additionals',
           localField: '_id',
           foreignField: 'fileId',
-          as: 'additional',
+          as: 'additionals',
         },
       },
     ])

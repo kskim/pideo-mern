@@ -98,6 +98,7 @@ class PostDetailPage extends Component {
       case 'snapshot':
       case 'poster':
       case 'cover':
+      case 'image':
         return (
           <div key={add._id}>
             <div>
@@ -190,9 +191,8 @@ class PostDetailPage extends Component {
         <div>
           <select ref="linkType" onChange={this.handleSelectChange}>
             <option value="subtitle">subtitle</option>
-            <option value="poster">poster</option>
-            <option value="cover">cover</option>
-            <option value="snapshot">snapshot</option>
+            <option value="image">image</option>
+            <option value="link">link</option>
             <option value="pin">pin</option>
           </select>
           <input type="text" placeholder="link value" value={this.state.linkValue} ref='linkValue' />
