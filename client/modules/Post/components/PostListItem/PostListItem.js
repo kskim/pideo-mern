@@ -12,10 +12,24 @@ function PostListItem(props) {
   if (tags && Array.isArray(tags)) {
     tagsArray = tags;
   }
+
+  const copyToClipboard = (val) => {
+    const textField = document.createElement('textarea');
+    textField.innerText = val;
+    document.body.appendChild(textField);
+    textField.select();
+    document.execCommand('copy');
+    textField.remove();
+  };
+
+  const utc = new Date(props.post.uploadDate);
   return (
     <div className={styles['divTableRow']}>
       <div className={styles['divTableCell']} >
-          {props.post._id}
+        {utc.toLocaleString('ko-KR')}
+      </div>
+      <div className={styles['divTableCell']} >
+          <a href="javascript:void(0);" onClick={() => {copyToClipboard(props.post._id)}}>copy</a>
       </div>
       <div className={`${styles['divTableCell']} ${styles['link']}`} >
         <Link to={`/files/${props.post._id}`} >
@@ -40,7 +54,7 @@ function PostListItem(props) {
         }
       </div>
       <div className={styles['divTableCell']} >
-        <p className={styles['post-action']}><a href="javascript:void(0);" onClick={props.onDelete}><FormattedMessage id="deletePost" /></a></p>
+        <p className={styles['post-action']}><a href="javascript:void(0);" onClick={props.onDelete}>X</a></p>
       </div>
     </div>
   );

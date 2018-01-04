@@ -109,6 +109,16 @@ export function deleteAdditional(req, res) {
 
 export function getFiles(req, res) {
   let query = {};
+  const page = req.query.page || 1;
+  const Attachment = getAttachment();
+
+  if (req.query.contentType) {
+    query['contentType'] = { $eq: req.query.contentType };
+  }
+
+  if (req.query.filename) {
+    query['filename'] = { $regex: req.query.filename, $options: 'i' };
+  }
 
   if (req.query.tags) {
     const tags = req.query.tags.split(' ');
@@ -119,14 +129,13 @@ export function getFiles(req, res) {
     query['metadata.rating'] = { $gte: parseInt(req.query.rating, 10) };
   }
 
-  const page = req.query.page;
-  const Attachment = getAttachment();
+
   Attachment
     .aggregate([
       { $match: query },
+      { $sort: { 'uploadDate': -1 } },
       { $skip: (page - 1) * 20 },
       { $limit: 20 },
-      { $sort: {'uploadDate': -1} },
       {
         $lookup: {
           from: 'additional',

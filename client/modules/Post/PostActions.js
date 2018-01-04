@@ -39,17 +39,14 @@ export function addPosts(posts) {
   };
 }
 
-export function fetchPosts(tags = null, rating = null, page = 1) {
+export function fetchPosts(params) {
   return (dispatch) => {
-    let query = 'files?page=' + page + '&';
-    if (tags) {
-      query += 'tags=' + tags + '&';
+    let query = 'files?';
+    if (params) {
+      Object.keys(params).forEach(key => {
+        query += key + '=' + params[key] + '&';
+      });
     }
-
-    if (rating) {
-      query += 'rating=' + rating + '&';
-    }
-
     return callApi(query).then(res => {
       dispatch(addPosts(res.files));
     });

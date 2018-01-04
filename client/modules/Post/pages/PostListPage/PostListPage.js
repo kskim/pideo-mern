@@ -33,29 +33,52 @@ class PostListPage extends Component {
   };
 
   handleSearchClick = () => {
-    this.props.dispatch(fetchPosts(this.refs.tags.value, this.refs.rating.value));
+    const params = {
+      page: 1,
+      tags: this.refs.tags.value,
+      rating: this.refs.rating.value,
+      filename: this.refs.filename.value,
+      contentType: this.refs.contentType.value,
+    };
+    this.props.dispatch(fetchPosts(params));
   };
 
   handleNextClick = () => {
-    this.props.dispatch(fetchPosts(this.refs.tags.value, this.refs.rating.value, this.state.page + 1));
+    const params = {
+      page: this.state.page + 1,
+      tags: this.refs.tags.value,
+      rating: this.refs.rating.value,
+      filename: this.refs.filename.value,
+      contentType: this.refs.contentType.value,
+    };
+    this.props.dispatch(fetchPosts(params));
     this.setState({ page: this.state.page + 1 });
   };
 
   handlePreviousClick = () => {
-    this.props.dispatch(fetchPosts(this.refs.tags.value, this.refs.rating.value, this.state.page - 1));
+    const params = {
+      page: this.state.page - 1,
+      tags: this.refs.tags.value,
+      rating: this.refs.rating.value,
+      filename: this.refs.filename.value,
+      contentType: this.refs.contentType.value,
+    };
+    this.props.dispatch(fetchPosts(params));
     this.setState({ page: this.state.page - 1 });
   };
 
   state = {
-    page: 1
-  }
+    page: 1,
+  };
 
   render() {
     return (
       <div>
         <div className={styles['form']}>
+          <input className={styles['form-field']} type="text" placeholder="filename" ref="filename" />
           <input className={styles['form-field']} type="text" placeholder="tags" ref="tags" />
           <input className={styles['form-field']} type="text" placeholder="rating" ref="rating" />
+          <input className={styles['form-field']} type="text" placeholder="content type" ref="contentType" />
           <a className={styles['button']} href="javascript:void(0);" onClick={this.handleSearchClick}>Search</a>
         </div>
         <PostCreateWidget addPost={this.handleAddPost} showAddPost={this.props.showAddPost} />
