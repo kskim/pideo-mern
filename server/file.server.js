@@ -79,7 +79,7 @@ export const save = (fields, files) => {
     // 자막 파일 및 이미지 파일을 연결시켜준다.
     const videos = Object.keys(files).filter(filename => {
       const extension = filename.split('.').pop();
-      return extension === 'mp4' || extension === 'webm';
+      return extension === 'mp4' || extension === 'webm' || extension === 'avi' || extension === 'wmv' || extension === 'mkv';
     });
 
     // 자막파일 목록
