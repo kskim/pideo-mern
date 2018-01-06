@@ -1,11 +1,11 @@
-import ioServer from 'socket.io';
-import ioStream from 'socket.io-stream';
 import gridfs from 'mongoose-gridfs'; // https://www.npmjs.com/package/mongoose-gridfs
 import fs from 'fs';
 import ffmpeg from 'ffmpeg';
 import Additional from './models/additional';
+import { exec } from 'child_process';
 
 const ENCODING_QUEUE = [];
+let CURRENT_QUEUE = {};
 const TEMP_PATH = __dirname + '/../temp/';
 const connection = global.mongoose_connect;
 
@@ -56,7 +56,6 @@ export const save = (fields, files) => {
         , (err, collection) => {
           if (err) {
             console.error(err);
-            resolve();
           } else {
             console.log('write success.', collection.filename);
             // 임시파일 삭제
@@ -94,7 +93,7 @@ export const save = (fields, files) => {
     videos.forEach(video => {
       // 자막연결
       const vttNames = vtts.filter(vtt => getFilenameWithoutExtension(vtt) === getFilenameWithoutExtension(video));
-      if (vttNames) {
+      if (vttNames && vttNames.length > 0) {
         const originId = values.filter(val => val[video])[0][video];
         const targetId = values.filter(val => val[vttNames[0]])[0][vttNames[0]];
         addLink(originId, targetId, 'subtitle', 'ko');
@@ -102,16 +101,17 @@ export const save = (fields, files) => {
 
       // 이미지 연결
       const imageNames = images.filter(image => getFilenameWithoutExtension(image) === getFilenameWithoutExtension(video));
-      if (imageNames) {
+      if (imageNames && imageNames.length > 0) {
         const originId = values.filter(val => val[video])[0][video];
         const targetId = values.filter(val => val[imageNames[0]])[0][imageNames[0]];
         addLink(originId, targetId, 'image', '');
       }
+      return null;
     });
   });
 };
 
-const encodingToMp4Job = (_id, force = false) => {
+const encodingToMp4Job = (_id) => {
   return new Promise(resolve => {
     const Attachment = getAttachment();
     Attachment.findOne({ _id }, (err, att) => {
@@ -120,13 +120,10 @@ const encodingToMp4Job = (_id, force = false) => {
         resolve(false);
         return;
       }
-      if (att.metadata.process && !force) {
-        return;
-      }
-      Attachment.update({ _id }, { $set: { 'metadata.process': true } }).then(console.log, console.error);
       const readStream = att.read();
-      const path = TEMP_PATH + att.filename;
-      const filename = getFilenameWithoutExtension(att.filename) + '_ffmpeg.mp4';
+      const nonSpaceFilename = (att.filename).replace(/ /gi, '_');
+      const path = TEMP_PATH + nonSpaceFilename;
+      const filename = getFilenameWithoutExtension(nonSpaceFilename) + '_ffmpeg.mp4';
       const writeStream = fs.createWriteStream(path);
       const rating = att.metadata.rating;
       let tags = att.metadata.tags;
@@ -137,85 +134,106 @@ const encodingToMp4Job = (_id, force = false) => {
       }
       readStream.pipe(writeStream);
       writeStream.on('finish', () => {
-        console.log('finish');
-        new ffmpeg(path, (err, video) => {
-          // -threads 4 -i
-          video.addCommand('-threads', 4);
-
-          video.save(TEMP_PATH + filename, (err, file) => {
+        console.log('temp file write finish');
+        const cmd = 'ffmpeg -threads 4 -i ' + path + " " +  TEMP_PATH + filename;
+        exec(cmd, {maxBuffer : 500 * 1024}, (err, stdout, stderr) => {
+          if (err) {
+            console.error('인코딩중 파일 저장 에러', err);
+            resolve(false);
+            return;
+          }
+          // 임시파일 삭제
+          fs.unlink(path, (err) => { // This Deletes The Temporary File
             if (err) {
               console.error(err);
               resolve(false);
-              return;
+            } else {
+              console.log(path + ' is deleted.');
             }
-            // 임시파일 삭제
-            fs.unlink(path, (err) => { // This Deletes The Temporary File
+          });
+          console.log('encoding finish');
+          const contentType = 'video/mp4';
+          Attachment.write({
+              filename,
+              contentType,
+              metadata: { rating, tags },
+            }
+            , fs.createReadStream(TEMP_PATH + filename)
+            , (err, collection) => {
               if (err) {
                 console.error(err);
                 resolve(false);
-              } else {
-                console.log(path + ' is deleted.');
               }
-            });
-            console.log('encoding finish');
-            const contentType = 'video/mp4';
-            Attachment.write({
-                filename,
-                contentType,
-                metadata: { rating, tags },
-              }
-              , fs.createReadStream(TEMP_PATH + filename)
-              , (err, collection) => {
+              console.log('write success.', collection.filename);
+              // 임시파일 삭제
+              fs.unlink(TEMP_PATH + filename, (err) => { // This Deletes The Temporary File
                 if (err) {
                   console.error(err);
                   resolve(false);
+                } else {
+                  console.log(filename + ' encoding file is deleted.');
                 }
-                console.log('write success.', collection.filename);
-                // 임시파일 삭제
-                fs.unlink(TEMP_PATH + filename, (err) => { // This Deletes The Temporary File
-                  if (err) {
-                    console.error(err);
-                    resolve(false);
-                  } else {
-                    console.log(filename + ' encoding file is deleted.');
-                    Attachment.update({ _id }, { $set: { 'metadata.process': false } }).then(console.log, console.error);
-                  }
-                });
-
-                // 파일 링크
-                const additional = new Additional();
-                additional.fileId = _id;
-                additional.linkValue = collection._id;
-                additional.linkType = 'link';
-                additional.save((err, add) => console.log(err, add));
-
-                // additional 복사
-                Additional.find({ 'fileId': _id }).exec((err, adds) => {
-                  if (err) {
-                    console.error(err);
-                    resolve(false);
-                  } else {
-                    adds.forEach(add => {
-                      const additional = new Additional();
-                      additional.fileId = collection._id;
-                      additional.linkValue = add.linkValue;
-                      additional.linkType = add.linkType;
-                      additional.linkInfo = add.linkInfo;
-                      additional.save((err, add) => console.log(err, add));
-                    });
-                    resolve(true);
-                  }
-                });
               });
-          });
+
+              // 파일 링크
+              const additional = new Additional();
+              additional.fileId = _id;
+              additional.linkValue = collection._id;
+              additional.linkType = 'link';
+              additional.save((err, add) => console.log(err, add));
+
+              const additional2 = new Additional();
+              additional2.fileId = collection._id;
+              additional2.linkValue = _id;
+              additional2.linkType = 'link';
+              additional2.save((err, add) => console.log(err, add));
+
+              // additional 복사
+              Additional.find({ 'fileId': _id }).exec((err, adds) => {
+                if (err) {
+                  console.error(err);
+                  resolve(false);
+                } else {
+                  adds.forEach(add => {
+                    const additional = new Additional();
+                    additional.fileId = collection._id;
+                    additional.linkValue = add.linkValue;
+                    additional.linkType = add.linkType;
+                    additional.linkInfo = add.linkInfo;
+                    additional.save((err, add) => console.log(err, add));
+                  });
+                  resolve(true);
+                }
+              });
+            });
         });
+        // new ffmpeg(path, (err, video) => {
+        //   // -threads 4 -i
+        //   video.addCommand('-threads', 4);
+        //   video.addCommand('-err_detect', 'ignore_err');
+        //
+        //   video.save(TEMP_PATH + filename, (err, file) => {
+        //     if (err) {
+        //       console.error('인코딩중 파일 저장 에러', err);
+        //       resolve(false);
+        //       return;
+        //     }
+        //
+        //   });
+        // });
       });
     });
   });
 };
 
 export const encodingToMp4 = (_id, force = false) => {
-  ENCODING_QUEUE.push({ _id, force });
+  if (force) {
+  } else if (CURRENT_QUEUE && CURRENT_QUEUE['_id'] !== _id) {
+    return;
+  } else if (ENCODING_QUEUE.some(q => q._id === _id)) {
+    return;
+  }
+  ENCODING_QUEUE.push({ _id });
 };
 
 export default (server) => {
@@ -224,12 +242,14 @@ export default (server) => {
   let promise = null;
   setInterval(() => {
     if (!promise) {
-      const q = ENCODING_QUEUE.pop();
-      if (q) {
-        promise = encodingToMp4Job(q);
+      CURRENT_QUEUE = ENCODING_QUEUE.pop();
+      if (CURRENT_QUEUE) {
+        console.log('encoding queue', CURRENT_QUEUE);
+        promise = encodingToMp4Job(CURRENT_QUEUE._id);
         promise.then(() => {
           console.log('encoding end');
           promise = null;
+          CURRENT_QUEUE = {};
         });
       }
     }

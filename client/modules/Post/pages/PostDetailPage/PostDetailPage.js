@@ -125,7 +125,7 @@ class PostDetailPage extends Component {
     if (post.additionals) {
       return post.additionals.filter(add => add.linkType === 'subtitle').map(add => {
         return (
-          <track kind="subtitles" label="subtitles" src={`/api/stream/${add.linkValue}`} srclang={add.linkInfo}></track>
+          <track key={add._id} kind="subtitles" label="subtitles" src={`/api/stream/${add.linkValue}`} srclang={add.linkInfo}></track>
         );
       });
     }
@@ -167,12 +167,6 @@ class PostDetailPage extends Component {
               activeSuggestion: styles2['ReactTags__activeSuggestion'],
             }}
           />
-          <div>
-            <span>
-              <a href={`/api/toMp4/${this.props.post._id}`} target='_blank'>encoding to mp4</a>
-            </span>
-            <span>(process:{this.props.post.metadata.process ? 'processing': 'process done'})</span>
-          </div>
           <span>
             <a href={'/api/stream/' + this.props.post._id}>{this.props.post.filename}</a>
             (size : {(this.props.post.length / 1048576).toFixed(2)}Mb)
@@ -225,7 +219,7 @@ PostDetailPage.propTypes = {
     metadata: PropTypes.shape({
       rating: PropTypes.number,
       tags: PropTypes.array,
-      process: PropTypes.boolean
+      process: PropTypes.boolean,
     }).isRequired,
     additionals: PropTypes.array.isRequired,
   }).isRequired,

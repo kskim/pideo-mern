@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
-import { FormattedMessage } from 'react-intl';
-
+import { encodingStart } from '../../PostActions';
 // Import Style
 import styles from './PostListItem.css';
 import StarRatingComponent from 'react-star-rating-component'; // https://www.npmjs.com/package/react-star-rating-component
@@ -26,8 +25,11 @@ function PostListItem(props) {
   const utc = new Date(props.post.uploadDate);
   return (
     <div className={styles['divTableRow']}>
+      <div className={styles['divTableCell']} >
+        <a href="javascript:void(0);" onClick={() => { encodingStart(props.post._id); }}>e</a>
+      </div>
       <div className={`${styles['divTableCell']} ${styles['date']}`} >
-          <a href="javascript:void(0);" onClick={() => {copyToClipboard(props.post._id)}}>{utc.getFullYear() + '.' + (utc.getMonth()+1) + '.' + utc.getDay()}</a>
+          <a href="javascript:void(0);" onClick={() => { copyToClipboard(props.post._id); }}>{utc.getFullYear() + '.' + (utc.getMonth() + 1) + '.' + utc.getDay()}</a>
       </div>
       <div className={`${styles['divTableCell']} ${styles['link']}`} >
         <Link to={`/files/${props.post._id}`} >
@@ -66,7 +68,6 @@ PostListItem.propTypes = {
     metadata: PropTypes.shape({
       rating: PropTypes.number,
       tags: PropTypes.array,
-      size: PropTypes.number,
     }).isRequired,
   }).isRequired,
   onDelete: PropTypes.func.isRequired,

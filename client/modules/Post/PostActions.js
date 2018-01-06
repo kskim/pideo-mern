@@ -53,6 +53,11 @@ export function fetchPosts(params) {
   };
 }
 
+export function encodingStart(_id) {
+  //http://localhost:8000/api/toMp4/5a4f0274157edd35241c3310
+  return callApi(`toMp4/${_id}`);
+}
+
 export function fetchPost(_id) {
   return (dispatch) => {
     return callApi(`files/${_id}`).then(res => dispatch(addPosts([res.file])));
