@@ -34,24 +34,32 @@ const addLink = (originId, targetId, linkType, linkInfo) => {
   additional.save((err, add) => console.log(err, add));
 };
 
-export const save = (fields, files) => {
-  const tags = fields.tags ? fields.tags.split(',') : [];
-  const rating = fields.rating ? parseInt(fields.rating, 10) : 1;
-
-  const requests = Object.keys(files).map(filename => {
-    return new Promise(resolve => {
+/**
+ * 차례대로 gfs 에 저장함
+ * @param filenames
+ * @param tags
+ * @param rating
+ * @param values
+ * @param finishedCall
+ */
+const saveGfs = (filenames, files, tags, rating, values, finishedCall) => {
+  if (filenames.length === 0) {
+    finishedCall(values);
+  } else {
+    const filename = filenames.pop();
+    const promi = new Promise(resolve => {
       const contentType = files[filename].type;
       const { path } = files[filename];
       const stream = fs.createReadStream(path);
       const Attachment = getAttachment();
       const localTags = tags.slice();
       localTags.push(filename.split('.').pop());
-
+      console.log('write start gfs', filename);
       Attachment.write({
-        filename,
-        contentType,
-        'metadata': { rating, 'tags': localTags },
-      }
+          filename,
+          contentType,
+          'metadata': { rating, 'tags': localTags },
+        }
         , stream
         , (err, collection) => {
           if (err) {
@@ -72,9 +80,20 @@ export const save = (fields, files) => {
           }
         });
     });
-  });
+    promi.then((value) => {
+      values.push(value);
+      saveGfs(filenames, files, tags, rating, values, finishedCall);
+    });
+  }
+};
 
-  Promise.all(requests).then((values) => {
+export const save = (fields, files) => {
+  const tags = fields.tags ? fields.tags.split(',') : [];
+  const rating = fields.rating ? parseInt(fields.rating, 10) : 1;
+  const valuesArray = [];
+  //
+  saveGfs(Object.keys(files), files, tags, rating, valuesArray, (values) => {
+    // 파일 저장이 모두 끝나고 서로 연결될수 있는 것들을 연결 시켜준다.
     // 자막 파일 및 이미지 파일을 연결시켜준다.
     const videos = Object.keys(files).filter(filename => {
       const extension = filename.split('.').pop();
@@ -135,8 +154,7 @@ const encodingToMp4Job = (_id) => {
       readStream.pipe(writeStream);
       writeStream.on('finish', () => {
         console.log('temp file write finish, 인코딩 시작');
-        //tag update
-        Attachment.update({ _id }, { $push: { 'metadata.tags': 'encoded' } }).then(console.log, console.error);
+
         const cmd = 'ffmpeg -threads 4 -i ' + path + ' ' + TEMP_PATH + filename;
         exec(cmd, { maxBuffer: 500 * 1024 }, (err, stdout, stderr) => {
           if (err) {
@@ -204,6 +222,8 @@ const encodingToMp4Job = (_id) => {
                     additional.linkInfo = add.linkInfo;
                     additional.save((err, add) => console.log(err, add));
                   });
+                  //tag update
+                  Attachment.update({ _id }, { $push: { 'metadata.tags': 'encoded' } }).then(console.log, console.error);
                   //encoded
                   resolve(true);
                 }
