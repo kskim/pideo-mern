@@ -25,9 +25,6 @@ function PostListItem(props) {
   const utc = new Date(props.post.uploadDate);
   return (
     <div className={styles['divTableRow']}>
-      <div className={styles['divTableCell']} >
-        <a href="javascript:void(0);" onClick={() => { encodingStart(props.post._id); }}>e</a>
-      </div>
       <div className={`${styles['divTableCell']} ${styles['date']}`} >
           <a href="javascript:void(0);" onClick={() => { copyToClipboard(props.post._id); }}>{utc.getFullYear() + '.' + (utc.getMonth() + 1) + '.' + utc.getDay()}</a>
       </div>

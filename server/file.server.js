@@ -134,9 +134,11 @@ const encodingToMp4Job = (_id) => {
       }
       readStream.pipe(writeStream);
       writeStream.on('finish', () => {
-        console.log('temp file write finish');
-        const cmd = 'ffmpeg -threads 4 -i ' + path + " " +  TEMP_PATH + filename;
-        exec(cmd, {maxBuffer : 500 * 1024}, (err, stdout, stderr) => {
+        console.log('temp file write finish, 인코딩 시작');
+        //tag update
+        Attachment.update({ _id }, { $push: { 'metadata.tags': 'encoded' } }).then(console.log, console.error);
+        const cmd = 'ffmpeg -threads 4 -i ' + path + ' ' + TEMP_PATH + filename;
+        exec(cmd, { maxBuffer: 500 * 1024 }, (err, stdout, stderr) => {
           if (err) {
             console.error('인코딩중 파일 저장 에러', err);
             resolve(false);
@@ -154,10 +156,10 @@ const encodingToMp4Job = (_id) => {
           console.log('encoding finish');
           const contentType = 'video/mp4';
           Attachment.write({
-              filename,
-              contentType,
-              metadata: { rating, tags },
-            }
+            filename,
+            contentType,
+            metadata: { rating, tags },
+          }
             , fs.createReadStream(TEMP_PATH + filename)
             , (err, collection) => {
               if (err) {
@@ -202,6 +204,7 @@ const encodingToMp4Job = (_id) => {
                     additional.linkInfo = add.linkInfo;
                     additional.save((err, add) => console.log(err, add));
                   });
+                  //encoded
                   resolve(true);
                 }
               });
@@ -213,14 +216,7 @@ const encodingToMp4Job = (_id) => {
 };
 
 export const encodingToMp4 = (_id, force = false) => {
-  if (force) {
-  } else if (CURRENT_QUEUE && CURRENT_QUEUE['_id'] === _id) {
-    return;
-  } else if (ENCODING_QUEUE.some(q => q._id === _id)) {
-    return;
-  }
-  ENCODING_QUEUE.push({ _id });
-  console.log('ENCODING_QUEUE', ENCODING_QUEUE);
+  console.log('아무 기능 하지 않음 자동으로 인코딩됨');
 };
 
 export default (server) => {
@@ -229,16 +225,22 @@ export default (server) => {
   let promise = null;
   setInterval(() => {
     if (!promise) {
-      CURRENT_QUEUE = ENCODING_QUEUE.pop();
-      if (CURRENT_QUEUE) {
-        console.log('encoding queue', CURRENT_QUEUE);
-        promise = encodingToMp4Job(CURRENT_QUEUE._id);
-        promise.then(() => {
-          console.log('encoding end');
-          promise = null;
-          CURRENT_QUEUE = {};
-        });
-      }
+      // 인코딩 필요한 대상건을 조회한다.
+      const Attachment = getAttachment();
+      Attachment.findOne({ $and: [{ 'metadata.tags': { $nin: ['encoded'] } }, { 'metadata.tags': { $in: ['avi', 'mkv', 'wmv'] } }] }).exec((err, att) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        if (att) {
+          console.log('인코딩이 필요한 영상을 찾음', att);
+          promise = encodingToMp4Job(att._id);
+          promise.then(() => {
+            console.log('encoding end');
+            promise = null;
+          });
+        }
+      });
     }
   }, 5000);
 };
