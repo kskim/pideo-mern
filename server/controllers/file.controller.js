@@ -164,6 +164,9 @@ export function deleteFile(req, res) {
       return;
     }
 
+    //
+    Additional.find({ 'fileId': unlinkedAttachment._id }).remove().exec();
+
     res.status(200).end();
   });
 }

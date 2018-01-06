@@ -11,7 +11,7 @@ import styles from '../../components/PostListItem/PostListItem.css';
 import styles2 from '../../components/PostCreateWidget/PostCreateWidget.css';
 
 // Import Actions
-import { fetchPost } from '../../PostActions';
+import { fetchPost, deletePostRequest } from '../../PostActions';
 
 // Import Selectors
 import { getPost } from '../../PostReducer';
@@ -138,6 +138,12 @@ class PostDetailPage extends Component {
     }
   };
 
+  handleDeletePost = _id => {
+    if (confirm('Do you want to delete this post')) { // eslint-disable-line
+      this.props.dispatch(deletePostRequest(_id));
+      window.location = '/';
+    }
+  };
   render() {
     const { rating } = this.props.post.metadata;
     return (
@@ -167,10 +173,15 @@ class PostDetailPage extends Component {
               activeSuggestion: styles2['ReactTags__activeSuggestion'],
             }}
           />
-          <span>
+
+          <div>
+            <a href="javascript:void(0);" onClick={() => this.handleDeletePost(this.props.post._id)}>[delete]</a>
+          </div>
+
+          <div>
             <a href={'/api/stream/' + this.props.post._id}>{this.props.post.filename}</a>
             (size : {(this.props.post.length / 1048576).toFixed(2)}Mb)
-          </span>
+          </div>
           {this.props.post.additionals ? this.props.post.additionals.map(this.additionalRender) : ''}
           {
             this.props.post.contentType == 'video/mp4' ||

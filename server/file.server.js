@@ -207,20 +207,6 @@ const encodingToMp4Job = (_id) => {
               });
             });
         });
-        // new ffmpeg(path, (err, video) => {
-        //   // -threads 4 -i
-        //   video.addCommand('-threads', 4);
-        //   video.addCommand('-err_detect', 'ignore_err');
-        //
-        //   video.save(TEMP_PATH + filename, (err, file) => {
-        //     if (err) {
-        //       console.error('인코딩중 파일 저장 에러', err);
-        //       resolve(false);
-        //       return;
-        //     }
-        //
-        //   });
-        // });
       });
     });
   });
@@ -228,12 +214,13 @@ const encodingToMp4Job = (_id) => {
 
 export const encodingToMp4 = (_id, force = false) => {
   if (force) {
-  } else if (CURRENT_QUEUE && CURRENT_QUEUE['_id'] !== _id) {
+  } else if (CURRENT_QUEUE && CURRENT_QUEUE['_id'] === _id) {
     return;
   } else if (ENCODING_QUEUE.some(q => q._id === _id)) {
     return;
   }
   ENCODING_QUEUE.push({ _id });
+  console.log('ENCODING_QUEUE', ENCODING_QUEUE);
 };
 
 export default (server) => {
